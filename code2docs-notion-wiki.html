@@ -26,8 +26,16 @@
       margin: 0;
       min-height: 100vh;
       font-family: Inter, Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, var(--bg), var(--bg-2));
       color: var(--text);
+      display: flex;
+    }
+
+    .main-content {
+      flex: 1;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg), var(--bg-2));
+      overflow-y: auto;
+      padding-left: 15px;
     }
 
     .app-shell {
@@ -51,11 +59,21 @@
     }
 
     .hero-title {
-      font-size: clamp(58px, 8vw, 104px);
+      font-size: clamp(58px, 8vw, 70px);
       line-height: 0.98;
       margin: 0 0 28px;
       font-weight: 900;
       letter-spacing: -4px;
+    }
+
+    .hero-title-repo {
+      font-size: clamp(58px, 8vw, 70px);
+      line-height: 0.98;
+      margin: 0 0 28px;
+      font-weight: 900;
+      letter-spacing: -4px;
+      color: var(--purple);
+      transition: transform .15s ease, filter .15s ease;
     }
 
     .hero-copy {
@@ -430,6 +448,7 @@
         color: black;
       }
 
+      #docsPanel,
       .sidebar,
       .back-btn,
       .export-btn,
@@ -522,14 +541,137 @@
     .log-body::-webkit-scrollbar-track { background: transparent; }
     .log-body::-webkit-scrollbar-thumb { background: #243044; border-radius: 3px; }
 
+    /* ── Collapsible docs panel ── */
+    #docsPanel {
+      width: 260px;
+      min-height: 100vh;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: none;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #docsPanel.open { display: flex; }
+
+    #docsPanel.collapsed { width: 48px; }
+
+    .panel-inner {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      width: 260px;
+      min-width: 260px;
+    }
+
+    .panel-topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-toggle {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(139,92,246,.12);
+      color: #a8b0c2;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .panel-toggle:hover { background: rgba(139,92,246,.28); color: white; }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 900;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .panel-section-label {
+      padding: 16px 14px 8px;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: #7f8aa3;
+      white-space: nowrap;
+    }
+
+    .panel-list {
+      list-style: none;
+      margin: 0;
+      padding: 4px 8px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .panel-list::-webkit-scrollbar { width: 4px; }
+    .panel-list::-webkit-scrollbar-track { background: transparent; }
+    .panel-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .panel-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      border-radius: 8px;
+      color: #a8b0c2;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      overflow: hidden;
+      transition: background 0.1s, color 0.1s;
+    }
+
+    .panel-item:hover { background: rgba(139,92,246,.16); color: white; }
+
+    .panel-item-icon { flex-shrink: 0; font-size: 15px; }
+
+    .panel-item-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 900px) {
+      #docsPanel { display: none !important; }
+    }
+
   </style>
 </head>
 <body>
+  <nav id="docsPanel">
+    <div class="panel-inner">
+      <div class="panel-topbar">
+        <button class="panel-toggle" id="panelToggle" onclick="togglePanel()" title="Toggle sidebar">
+          <span id="panelChevron">◀</span>
+        </button>
+        <span class="panel-title">Docs Library</span>
+      </div>
+      <div class="panel-section-label">Repositories</div>
+      <ul class="panel-list" id="panelList"></ul>
+    </div>
+  </nav>
+
+  <div class="main-content">
   <main class="app-shell">
     <section id="generatorScreen">
       <div class="badge">Code2Docs</div>
 
-      <h1 class="hero-title">Generate documentation from a repo URL</h1>
+      <h1 class="hero-title">Generate documentation from a </h1>
+      <h1 class="hero-title-repo" style="font-color: ;">repo URL</h1>
 
       <p class="hero-copy">
         Paste the GitHub/GitLab/Bitbucket link and create a technical README with modules,
@@ -544,7 +686,7 @@
             id="repo"
             class="repo-input"
             placeholder="https://github.com/org/repo.git"
-            value="https://github.com/backend-teamdev-expertos/skills-dashboard-rest.git"
+            value=""
           />
           <button class="generate-btn" onclick="generateDocs()">Generate docs</button>
         </div>
@@ -681,6 +823,7 @@
       </div>
     </section>
   </main>
+  </div>
 
   <script>
     let currentRepoName = "";
@@ -779,6 +922,7 @@
                   setLogActive(false);
                   fetchLogs();
                   wikiLaunch.style.display = "block";
+                  loadDocsList();
                 }
               })
               .catch(() => {});
@@ -833,6 +977,45 @@
     function exportPDF() {
       window.print();
     }
+
+    let panelCollapsed = false;
+
+    function togglePanel() {
+      const panel = document.getElementById('docsPanel');
+      const chevron = document.getElementById('panelChevron');
+      panelCollapsed = !panelCollapsed;
+      panel.classList.toggle('collapsed', panelCollapsed);
+      chevron.textContent = panelCollapsed ? '▶' : '◀';
+    }
+
+    function loadDocsList() {
+      fetch('/api/list-docs')
+        .then(r => r.json())
+        .then(data => {
+          const panel = document.getElementById('docsPanel');
+          const list = document.getElementById('panelList');
+          if (!data.repos || data.repos.length === 0) {
+            panel.classList.remove('open');
+            return;
+          }
+          list.innerHTML = '';
+          data.repos.forEach(repo => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = repo.url;
+            a.target = '_blank';
+            a.className = 'panel-item';
+            a.title = repo.name;
+            a.innerHTML = `<span class="panel-item-icon">📄</span><span class="panel-item-text">${repo.name}</span>`;
+            li.appendChild(a);
+            list.appendChild(li);
+          });
+          panel.classList.add('open');
+        })
+        .catch(() => {});
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDocsList);
   </script>
 </body>
 </html>

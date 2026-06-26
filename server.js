@@ -173,6 +173,22 @@ app.get('/api/logs/:repoName', (req, res) => {
   res.json({ logs: lines.slice(-200).join('\n') });
 });
 
+app.get('/api/list-docs', (req, res) => {
+  const outputDir = path.join(ROOT, 'output');
+  if (!fs.existsSync(outputDir)) return res.json({ repos: [] });
+  try {
+    const repos = fs.readdirSync(outputDir)
+      .filter(name => {
+        return fs.statSync(path.join(outputDir, name)).isDirectory()
+          && fs.existsSync(path.join(outputDir, name, 'index.html'));
+      })
+      .map(name => ({ name, url: `/output/${name}/index.html` }));
+    res.json({ repos });
+  } catch (err) {
+    res.json({ repos: [] });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Code2Docs server running at http://localhost:${PORT}`);
 });
