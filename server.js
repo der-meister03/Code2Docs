@@ -1,5 +1,5 @@
 const express = require('express');
-const { execSync, spawn } = require('child_process');
+const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -33,42 +33,27 @@ function appendLog(repoName, line) {
   fs.appendFileSync(logPath(repoName), `[${new Date().toISOString()}] ${line}\n`, 'utf8');
 }
 
-app.post('/api/generate-docs', (req, res) => {
-  const { repoUrl } = req.body;
-  if (!repoUrl) {
-    return res.status(400).json({ success: false, error: 'Repository URL is required' });
-  }
+// Runs a git command asynchronously, appending output to the log.
+function runGit(args, options, repoName) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn('git', args, { ...options, shell: false });
+    const chunks = [];
+    if (proc.stdout) proc.stdout.on('data', d => chunks.push(d));
+    if (proc.stderr) proc.stderr.on('data', d => chunks.push(d));
+    proc.on('error', reject);
+    proc.on('close', code => {
+      const out = Buffer.concat(chunks).toString().trim();
+      if (code !== 0) {
+        reject(new Error(out || `git exited with code ${code}`));
+      } else {
+        resolve(out);
+      }
+    });
+  });
+}
 
-  const repoName = extractRepoName(repoUrl);
-  const repoPath = path.join(ROOT, 'cloned-repos', repoName);
-
-  // Reset log for this run
-  fs.mkdirSync(LOGS_DIR, { recursive: true });
-  fs.writeFileSync(logPath(repoName), '', 'utf8');
-  appendLog(repoName, `Starting documentation for: ${repoUrl}`);
-
-  // Clone or pull
-  try {
-    if (fs.existsSync(repoPath)) {
-      appendLog(repoName, `Repository already cloned — running git pull...`);
-      const pullOut = execSync('git pull', { cwd: repoPath, stdio: 'pipe', timeout: 60000 });
-      appendLog(repoName, `git pull: ${pullOut.toString().trim() || 'Already up to date.'}`);
-    } else {
-      appendLog(repoName, `Cloning repository...`);
-      fs.mkdirSync(path.join(ROOT, 'cloned-repos'), { recursive: true });
-      execSync(`git clone "${repoUrl}" "${repoPath}"`, { cwd: ROOT, stdio: 'pipe', timeout: 120000 });
-      appendLog(repoName, `Clone complete → ${repoPath}`);
-    }
-  } catch (err) {
-    const msg = err.stderr?.toString().trim() || err.message;
-    appendLog(repoName, `ERROR (git): ${msg}`);
-    return res.status(500).json({ success: false, error: `Git error: ${msg}` });
-  }
-
+function spawnClaude(repoName, action) {
   const docsExist = outputExists(repoName);
-  const action = docsExist ? 'Update' : 'Create';
-  appendLog(repoName, `Documentation status: ${docsExist ? 'EXISTS — will update' : 'NOT FOUND — will create from scratch'}`);
-
   const prompt = docsExist
     ? `Update the documentation for my codebase at ./cloned-repos/${repoName}. Save the updated output to ./output/${repoName}/`
     : `Create the documentation for my codebase at ./cloned-repos/${repoName}. Save the output to ./output/${repoName}/`;
@@ -108,7 +93,7 @@ app.post('/api/generate-docs', (req, res) => {
     try {
       fs.appendFileSync(logPath(repoName), `[ERROR] Failed to spawn claude: ${err.message}\n`);
     } catch (_) {}
-    fs.closeSync(logFd);
+    try { fs.closeSync(logFd); } catch (_) {}
   });
 
   // Close the FD only after the child exits so Windows doesn't drop the handle early
@@ -117,13 +102,56 @@ app.post('/api/generate-docs', (req, res) => {
   });
 
   claudeProcess.unref();
+}
 
+app.post('/api/generate-docs', (req, res) => {
+  const { repoUrl } = req.body;
+  if (!repoUrl) {
+    return res.status(400).json({ success: false, error: 'Repository URL is required' });
+  }
+
+  const repoName = extractRepoName(repoUrl);
+  const repoPath = path.join(ROOT, 'cloned-repos', repoName);
+
+  // Reset log for this run
+  fs.mkdirSync(LOGS_DIR, { recursive: true });
+  fs.writeFileSync(logPath(repoName), '', 'utf8');
+  appendLog(repoName, `Starting documentation for: ${repoUrl}`);
+
+  const repoExists = fs.existsSync(repoPath);
+  const action = repoExists ? 'Update' : 'Create';
+
+  // Respond immediately so the browser is unblocked and can start polling logs/status
   res.json({
     success: true,
     repoName,
     action,
     outputUrl: `/output/${repoName}/`,
     message: `Documentation ${action.toLowerCase()} started in background`
+  });
+
+  // Run git + claude fully async so the event loop stays free for polling requests
+  setImmediate(async () => {
+    try {
+      if (repoExists) {
+        appendLog(repoName, `Repository already cloned — running git pull...`);
+        const out = await runGit(['pull', '--quiet'], { cwd: repoPath, stdio: 'pipe' }, repoName);
+        appendLog(repoName, `git pull: ${out || 'Already up to date.'}`);
+      } else {
+        appendLog(repoName, `Cloning repository...`);
+        fs.mkdirSync(path.join(ROOT, 'cloned-repos'), { recursive: true });
+        await runGit(['clone', '--quiet', repoUrl, repoPath], { cwd: ROOT, stdio: 'pipe' }, repoName);
+        appendLog(repoName, `Clone complete → ${repoPath}`);
+      }
+    } catch (err) {
+      appendLog(repoName, `ERROR (git): ${err.message}`);
+      return;
+    }
+
+    const docsExist = outputExists(repoName);
+    appendLog(repoName, `Documentation status: ${docsExist ? 'EXISTS — will update' : 'NOT FOUND — will create from scratch'}`);
+
+    spawnClaude(repoName, action);
   });
 });
 
