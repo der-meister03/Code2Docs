@@ -1,0 +1,842 @@
+/* ============================================================
+   Code2Docs Wiki Theme — Purple Edition
+   Shared stylesheet for all agent-generated HTML documentation.
+   Mirrors the design system of code2docs-notion-wiki.html.
+   ============================================================ */
+
+/* ── 1. Design tokens ─────────────────────────────────────── */
+:root {
+  /* Backgrounds — purple dominant */
+  --bg:              #09071a;
+  --bg-2:            #060411;
+  --panel:           #0b091e;
+  --card:            rgba(18, 12, 42, 0.90);
+  --sidebar-bg:      #0d0b22;
+  --inset:           #07051a;
+
+  /* Borders — purple tinted */
+  --border:          #1e1745;
+  --border-strong:   #3a2d6e;
+
+  /* Text — lavender tinted */
+  --text:            #ede9ff;
+  --text-muted:      #a89dc8;
+  --text-dim:        #6b5fa0;
+  --text-body:       #b3a9d5;
+
+  /* Brand */
+  --purple:          #9333ea;
+  --purple-2:        #6d28d9;
+  --purple-glow:     rgba(147, 51, 234, 0.25);
+  --green:           #22c55e;
+  --green-2:         #16a34a;
+  --cyan:            #06b6d4;
+  --cyan-2:          #0891b2;
+  --pink:            #ec4899;
+  --pink-2:          #be185d;
+
+  /* Badge language colors */
+  --lang-java:       #f89820;
+  --lang-kotlin:     #a78bfa;
+  --lang-ts:         #60a5fa;
+  --lang-js:         #fde047;
+  --lang-py:         #7dd3fc;
+  --lang-go:         #38bdf8;
+  --lang-rust:       #fb923c;
+  --lang-cs:         #e879f9;
+  --lang-cpp:        #67e8f9;
+  --lang-ruby:       #f87171;
+  --lang-php:        #a5b4fc;
+  --lang-swift:      #fb923c;
+  --lang-dart:       #38bdf8;
+  --lang-shell:      #86efac;
+  --lang-generic:    #94a3b8;
+
+  /* Spacing */
+  --sidebar-w:       280px;
+  --radius-sm:       10px;
+  --radius-md:       16px;
+  --radius-lg:       22px;
+  --radius-xl:       28px;
+}
+
+/* Light mode — lavender / lilac tones */
+[data-theme="light"] {
+  --bg:              #f3f0ff;
+  --bg-2:            #ebe5ff;
+  --panel:           #ffffff;
+  --card:            rgba(255, 255, 255, 0.94);
+  --sidebar-bg:      #ede9ff;
+  --inset:           #faf8ff;
+  --border:          #c4b5f5;
+  --border-strong:   #9b7ee8;
+  --text:            #1e0a4c;
+  --text-muted:      #5b4894;
+  --text-dim:        #7c64a8;
+  --text-body:       #3d2b6e;
+  --purple:          #7c3aed;
+  --purple-2:        #5b21b6;
+  --purple-glow:     rgba(124, 58, 237, 0.18);
+}
+
+/* ── 2. Reset & base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  background: radial-gradient(ellipse at top left, #160d35 0%, var(--bg-2) 60%),
+              linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+[data-theme="light"] body {
+  background: radial-gradient(ellipse at top left, #ddd3ff 0%, var(--bg-2) 60%),
+              linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+}
+
+/* ── 3. Layout shell ─────────────────────────────────────── */
+/*
+  SCROLL CONTRACT — do not break this:
+  - The WINDOW is the scroll container. Never set overflow-y on .wiki-shell or .wiki-main.
+  - .sidebar uses position:sticky so it stays in view as the window scrolls.
+  - .wiki-section uses scroll-margin-top so the sticky banner doesn't cover headings.
+  Violating any of these makes anchor links (href="#id") silently do nothing.
+*/
+.wiki-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100vh;
+  /* NO overflow property here — window must be the scroll container */
+}
+
+/* ── 4. Run banner ───────────────────────────────────────── */
+.run-banner {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 28px;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.run-banner.first-run {
+  background: linear-gradient(90deg, rgba(109, 40, 217, 0.28) 0%, rgba(147, 51, 234, 0.12) 100%);
+  color: #d8b4fe;
+  border-bottom-color: rgba(147, 51, 234, 0.4);
+}
+
+.run-banner.update-run {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.18) 0%, rgba(34, 197, 94, 0.06) 100%);
+  color: #86efac;
+  border-bottom-color: rgba(34, 197, 94, 0.3);
+}
+
+.run-banner .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ── 5. Sidebar ──────────────────────────────────────────── */
+.sidebar {
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  padding: 28px 16px 40px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--purple-2), transparent 60%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 30px;
+  padding: 0 6px;
+}
+
+.brand-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--purple), var(--purple-2));
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px var(--purple-glow);
+}
+
+.sidebar-section-title {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  margin: 24px 10px 8px;
+}
+
+.nav-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+  text-decoration: none;
+  position: relative;
+}
+
+.nav-item:hover {
+  color: var(--text);
+  background: rgba(147, 51, 234, 0.14);
+}
+
+.nav-item.active {
+  color: #d8b4fe;
+  background: rgba(147, 51, 234, 0.22);
+  box-shadow: inset 3px 0 0 var(--purple);
+}
+
+.nav-item .nav-icon { flex-shrink: 0; font-size: 16px; }
+
+/* theme toggle at bottom of sidebar */
+.theme-toggle {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.theme-toggle-btn {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  background: var(--inset);
+  color: var(--text-muted);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+}
+
+.theme-toggle-btn:hover {
+  color: #d8b4fe;
+  background: rgba(147, 51, 234, 0.14);
+  box-shadow: 0 0 12px var(--purple-glow);
+}
+
+/* ── 6. Main content area ────────────────────────────────── */
+.wiki-main {
+  background: var(--panel);
+  padding: 34px 48px 56px;
+  /* NO overflow-y — window is the scroll container; setting overflow-y here breaks anchor links */
+  min-height: 100vh;
+}
+
+/* ── 7. Page topbar ──────────────────────────────────────── */
+.wiki-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 24px;
+  margin-bottom: 28px;
+}
+
+.page-eyebrow {
+  color: #a855f7;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.page-title {
+  font-size: clamp(32px, 4vw, 54px);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -2px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--text) 40%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="light"] .page-title {
+  background: linear-gradient(135deg, var(--text) 40%, var(--purple) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 17px;
+  word-break: break-word;
+}
+
+.topbar-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+
+/* ── 8. Buttons ──────────────────────────────────────────── */
+.btn {
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.12s, filter 0.12s, box-shadow 0.12s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  font-size: 14px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 18px var(--purple-glow);
+}
+
+.btn-ghost {
+  background: var(--inset);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--purple), var(--purple-2));
+  color: white;
+  box-shadow: 0 2px 12px var(--purple-glow);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--green), var(--green-2));
+  color: white;
+}
+
+.btn-export {
+  background: linear-gradient(135deg, var(--cyan), var(--cyan-2));
+  color: white;
+}
+
+/* ── 9. Language badges ──────────────────────────────────── */
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 20px;
+}
+
+.lang-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border: 1px solid transparent;
+}
+
+.lang-badge.java     { background: rgba(248,152, 32,.15); border-color: rgba(248,152, 32,.35); color: #f89820; }
+.lang-badge.kotlin   { background: rgba(167,139,250,.15); border-color: rgba(167,139,250,.35); color: #a78bfa; }
+.lang-badge.ts       { background: rgba( 96,165,250,.15); border-color: rgba( 96,165,250,.35); color: #60a5fa; }
+.lang-badge.js       { background: rgba(253,224, 71,.12); border-color: rgba(253,224, 71,.30); color: #fde047; }
+.lang-badge.python   { background: rgba(125,211,252,.12); border-color: rgba(125,211,252,.28); color: #7dd3fc; }
+.lang-badge.go       { background: rgba( 56,189,248,.15); border-color: rgba( 56,189,248,.35); color: #38bdf8; }
+.lang-badge.rust     { background: rgba(251,146, 60,.15); border-color: rgba(251,146, 60,.35); color: #fb923c; }
+.lang-badge.csharp   { background: rgba(232,121,249,.15); border-color: rgba(232,121,249,.35); color: #e879f9; }
+.lang-badge.cpp      { background: rgba(103,232,249,.12); border-color: rgba(103,232,249,.28); color: #67e8f9; }
+.lang-badge.ruby     { background: rgba(248,113,113,.15); border-color: rgba(248,113,113,.35); color: #f87171; }
+.lang-badge.php      { background: rgba(165,180,252,.15); border-color: rgba(165,180,252,.35); color: #a5b4fc; }
+.lang-badge.swift    { background: rgba(251,146, 60,.15); border-color: rgba(251,146, 60,.35); color: #fb923c; }
+.lang-badge.dart     { background: rgba( 56,189,248,.15); border-color: rgba( 56,189,248,.35); color: #38bdf8; }
+.lang-badge.shell    { background: rgba(134,239,172,.12); border-color: rgba(134,239,172,.28); color: #86efac; }
+.lang-badge.generic  { background: rgba(148,163,184,.12); border-color: rgba(148,163,184,.28); color: #94a3b8; }
+
+/* version sub-badge */
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(147, 51, 234, 0.15);
+  border: 1px solid rgba(147, 51, 234, 0.35);
+  color: #d8b4fe;
+}
+
+/* ── 10. Section headings ────────────────────────────────── */
+.wiki-section {
+  margin-bottom: 48px;
+  /* Offset so the sticky banner doesn't cover the heading when anchor-scrolling */
+  scroll-margin-top: 72px;
+}
+
+.wiki-section h2 {
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(90deg, var(--text) 60%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="light"] .wiki-section h2 {
+  background: linear-gradient(90deg, var(--text) 50%, var(--purple) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.wiki-section h3 {
+  font-size: 19px;
+  font-weight: 800;
+  margin: 26px 0 10px;
+  color: #c4b5fd;
+}
+
+[data-theme="light"] .wiki-section h3 { color: var(--purple-2); }
+
+.wiki-section h4 {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 20px 0 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.wiki-section p,
+.wiki-section li {
+  color: var(--text-body);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.wiki-section ul,
+.wiki-section ol { padding-left: 22px; }
+
+.wiki-section li { margin-bottom: 6px; }
+
+.wiki-section a { color: #a855f7; text-decoration: none; }
+.wiki-section a:hover { color: #d8b4fe; text-decoration: underline; }
+
+/* ── 11. Metric / summary cards ─────────────────────────── */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.metric-card {
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 20px var(--purple-glow);
+}
+
+.metric-card .label {
+  display: block;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  margin-bottom: 10px;
+}
+
+.metric-card .value {
+  display: block;
+  color: #d8b4fe;
+  font-size: 26px;
+  font-weight: 900;
+}
+
+[data-theme="light"] .metric-card .value { color: var(--purple); }
+
+.metric-card .sub {
+  display: block;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* complexity rating badge */
+.complexity-low    { color: var(--green); }
+.complexity-medium { color: #f59e0b; }
+.complexity-high   { color: #f87171; }
+
+/* ── 12. Code blocks ─────────────────────────────────────── */
+.code-block,
+pre.hljs {
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  overflow-x: auto;
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #e9e4ff;
+  white-space: pre;
+}
+
+/* code inside prose */
+.wiki-section code {
+  background: rgba(147, 51, 234, 0.15);
+  border: 1px solid rgba(147, 51, 234, 0.28);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 0.9em;
+  color: #d8b4fe;
+}
+
+/* ── 13. Diagram containers ──────────────────────────────── */
+
+/* base diagram card */
+.diagram-card {
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin: 16px 0 28px;
+  overflow-x: auto;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.diagram-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 24px var(--purple-glow);
+}
+
+.diagram-card .diagram-title {
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  color: var(--text-dim);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diagram-card .diagram-title::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, var(--purple), var(--purple-2));
+}
+
+/* Mermaid overrides inside diagram-card */
+.diagram-card .mermaid { text-align: center; }
+.diagram-card .mermaid svg { max-width: 100%; height: auto; }
+
+/* global repo diagram — visually distinct */
+.diagram-card.global-diagram {
+  border-color: rgba(147, 51, 234, 0.50);
+  background: rgba(109, 40, 217, 0.08);
+  box-shadow: 0 0 0 1px rgba(147, 51, 234, 0.18),
+              0 8px 40px rgba(147, 51, 234, 0.14);
+}
+
+.diagram-card.global-diagram .diagram-title { color: #d8b4fe; }
+.diagram-card.global-diagram:hover {
+  box-shadow: 0 0 0 1px rgba(147, 51, 234, 0.35),
+              0 12px 48px rgba(147, 51, 234, 0.22);
+}
+
+.global-diagram-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background: rgba(147, 51, 234, 0.20);
+  border: 1px solid rgba(147, 51, 234, 0.42);
+  color: #d8b4fe;
+  box-shadow: 0 0 12px rgba(147, 51, 234, 0.2);
+  margin-bottom: 12px;
+}
+
+/* ── 14. Changelog table ─────────────────────────────────── */
+.changelog-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-top: 18px;
+}
+
+.changelog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.changelog-table thead {
+  background: rgba(147, 51, 234, 0.12);
+}
+
+.changelog-table th {
+  padding: 13px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.changelog-table td {
+  padding: 12px 16px;
+  color: var(--text-body);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.changelog-table tr:last-child td { border-bottom: 0; }
+.changelog-table tr:hover td { background: rgba(147, 51, 234, 0.07); }
+
+.commit-hash {
+  font-family: Consolas, Monaco, monospace;
+  font-size: 13px;
+  background: rgba(147, 51, 234, 0.14);
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: #d8b4fe;
+}
+
+/* layer tag inside changelog */
+.layer-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.layer-tag.backend  { background: rgba( 96,165,250,.12); border-color: rgba( 96,165,250,.28); color: #60a5fa; }
+.layer-tag.frontend { background: rgba(167,139,250,.14); border-color: rgba(167,139,250,.30); color: #c4b5fd; }
+.layer-tag.config   { background: rgba(253,224, 71,.10); border-color: rgba(253,224, 71,.25); color: #fde047; }
+.layer-tag.db       { background: rgba( 34,197, 94,.12); border-color: rgba( 34,197, 94,.28); color: #86efac; }
+
+/* ── 15. Key functions table ─────────────────────────────── */
+.fn-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-top: 16px;
+}
+
+.fn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.fn-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  color: var(--text-dim);
+  background: rgba(147, 51, 234, 0.10);
+  border-bottom: 1px solid var(--border);
+}
+
+.fn-table td {
+  padding: 12px 16px;
+  color: var(--text-body);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.fn-table tr:last-child td { border-bottom: 0; }
+.fn-table tr:hover td { background: rgba(147, 51, 234, 0.06); }
+
+.fn-table code {
+  font-family: Consolas, Monaco, monospace;
+  font-size: 13px;
+  color: #d8b4fe;
+}
+
+/* ── 16. Callout boxes ───────────────────────────────────── */
+.callout {
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin: 16px 0;
+  border-left: 3px solid;
+  display: flex;
+  gap: 14px;
+}
+
+.callout-icon { font-size: 20px; flex-shrink: 0; line-height: 1.4; }
+.callout-body { flex: 1; }
+
+.callout.info    { background: rgba( 96,165,250,.08); border-color: #60a5fa; }
+.callout.warning { background: rgba(245,158, 11,.08); border-color: #f59e0b; }
+.callout.success { background: rgba( 34,197, 94,.08); border-color: #22c55e; }
+.callout.tip     { background: rgba(147, 51,234,.10); border-color: var(--purple);
+                   box-shadow: inset 0 0 20px rgba(147, 51, 234, 0.06); }
+
+/* ── 17. Run type pill in topbar ─────────────────────────── */
+.run-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.run-pill.first-run {
+  background: rgba(147, 51, 234, 0.18);
+  border: 1px solid rgba(147, 51, 234, 0.42);
+  color: #d8b4fe;
+  box-shadow: 0 0 10px rgba(147, 51, 234, 0.2);
+}
+
+.run-pill.update-run {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
+/* ── 18. Responsive ──────────────────────────────────────── */
+@media (max-width: 900px) {
+  .wiki-shell { grid-template-columns: 1fr; }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar::after { display: none; }
+
+  .wiki-main { padding: 22px 20px 40px; }
+
+  .wiki-topbar { flex-direction: column; }
+
+  .metric-grid { grid-template-columns: 1fr 1fr; }
+
+  .page-title { letter-spacing: -1px; }
+}
+
+@media (max-width: 540px) {
+  .metric-grid { grid-template-columns: 1fr; }
+  .badge-row { gap: 6px; }
+}
+
+/* ── 19. Print ───────────────────────────────────────────── */
+@media print {
+  body { background: white; color: black; }
+
+  .sidebar,
+  .run-banner,
+  .topbar-actions,
+  .theme-toggle { display: none !important; }
+
+  .wiki-shell { grid-template-columns: 1fr; }
+
+  .wiki-main { padding: 0; }
+
+  .diagram-card,
+  .code-block,
+  .changelog-wrap,
+  .fn-table-wrap {
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+
+  .wiki-section { page-break-inside: avoid; }
+}
+
+/* ── 20. Scrollbars ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #6d28d9; }

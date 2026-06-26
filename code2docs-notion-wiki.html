@@ -26,16 +26,8 @@
       margin: 0;
       min-height: 100vh;
       font-family: Inter, Arial, Helvetica, sans-serif;
-      color: var(--text);
-      display: flex;
-    }
-
-    .main-content {
-      flex: 1;
-      min-height: 100vh;
       background: linear-gradient(135deg, var(--bg), var(--bg-2));
-      overflow-y: auto;
-      padding-left: 15px;
+      color: var(--text);
     }
 
     .app-shell {
@@ -59,30 +51,20 @@
     }
 
     .hero-title {
-      font-size: clamp(58px, 8vw, 70px);
-      line-height: 0.98;
-      margin: 0 0 28px;
-      font-weight: 900;
-      letter-spacing: -4px;
-    }
-
-    .hero-title-repo {
-      font-size: clamp(58px, 8vw, 70px);
-      line-height: 0.98;
-      margin: 0 0 28px;
-      font-weight: 900;
-      letter-spacing: -4px;
-      color: var(--purple);
-      transition: transform .15s ease, filter .15s ease;
+      font-size: clamp(38px, 5vw, 68px);
+      line-height: 1.04;
+      margin: 0 0 22px;
+      font-weight: 800;
+      letter-spacing: -1px;
     }
 
     .hero-copy {
       color: #a8b0c2;
-      font-size: clamp(22px, 2.3vw, 32px);
-      line-height: 1.2;
-      max-width: 1140px;
-      margin: 0 0 52px;
-      font-weight: 650;
+      font-size: clamp(17px, 1.7vw, 22px);
+      line-height: 1.45;
+      max-width: 860px;
+      margin: 0 0 44px;
+      font-weight: 500;
     }
 
     .generator-card {
@@ -448,7 +430,6 @@
         color: black;
       }
 
-      #docsPanel,
       .sidebar,
       .back-btn,
       .export-btn,
@@ -487,6 +468,7 @@
       gap: 10px;
     }
 
+    /* ── Progress panel ─────────────────────────────────── */
     .log-panel {
       display: none;
       margin-top: 20px;
@@ -515,163 +497,134 @@
       height: 8px;
       border-radius: 50%;
       background: #22c55e;
-      animation: pulse 1.2s ease-in-out infinite;
+      animation: dotPulse 1.2s ease-in-out infinite;
     }
-
     .log-dot.idle { background: #64748b; animation: none; }
 
-    @keyframes pulse {
+    @keyframes dotPulse {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+      50%       { opacity: 0.3; }
     }
 
-    .log-body {
-      padding: 16px 20px;
-      height: 220px;
-      overflow-y: auto;
-      font-family: Consolas, Monaco, 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #a8c4a2;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    .log-body::-webkit-scrollbar { width: 6px; }
-    .log-body::-webkit-scrollbar-track { background: transparent; }
-    .log-body::-webkit-scrollbar-thumb { background: #243044; border-radius: 3px; }
-
-    /* ── Collapsible docs panel ── */
-    #docsPanel {
-      width: 260px;
-      min-height: 100vh;
-      background: var(--sidebar);
-      border-right: 1px solid var(--border);
-      display: none;
-      flex-direction: column;
-      flex-shrink: 0;
-      overflow: hidden;
-      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    #docsPanel.open { display: flex; }
-
-    #docsPanel.collapsed { width: 48px; }
-
-    .panel-inner {
+    /* Steps list */
+    .steps-list {
+      padding: 22px 24px 20px;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
-      width: 260px;
-      min-width: 260px;
     }
 
-    .panel-topbar {
+    .step-item {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 16px 10px;
-      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+      gap: 16px;
+      position: relative;
     }
 
-    .panel-toggle {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: rgba(139,92,246,.12);
-      color: #a8b0c2;
-      cursor: pointer;
+    /* Connector line */
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 14px;
+      top: 30px;
+      bottom: -4px;
+      width: 2px;
+      background: #1a2540;
+      transition: background 0.5s ease;
+    }
+    .step-item.done:not(:last-child)::after  { background: #166534; }
+    .step-item.active:not(:last-child)::after {
+      background: linear-gradient(to bottom, #7c3aed, #1a2540);
+    }
+
+    /* Circle */
+    .step-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid #1a2540;
+      background: #020510;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
       flex-shrink: 0;
-      transition: background 0.15s, color 0.15s;
+      position: relative;
+      z-index: 1;
+      transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+    .step-item.done .step-circle {
+      background: #166534;
+      border-color: #22c55e;
+    }
+    .step-item.active .step-circle {
+      background: #1e0b4a;
+      border-color: #8b5cf6;
+      animation: ringPulse 1.8s ease-in-out infinite;
     }
 
-    .panel-toggle:hover { background: rgba(139,92,246,.28); color: white; }
-
-    .panel-title {
-      font-size: 14px;
-      font-weight: 900;
-      white-space: nowrap;
-      color: var(--text);
+    @keyframes ringPulse {
+      0%, 100% { box-shadow: 0 0 0 0   rgba(139,92,246,.55); }
+      50%       { box-shadow: 0 0 0 7px rgba(139,92,246,0); }
     }
 
-    .panel-section-label {
-      padding: 16px 14px 8px;
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 1.4px;
-      color: #7f8aa3;
-      white-space: nowrap;
-    }
-
-    .panel-list {
-      list-style: none;
-      margin: 0;
-      padding: 4px 8px;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    .panel-list::-webkit-scrollbar { width: 4px; }
-    .panel-list::-webkit-scrollbar-track { background: transparent; }
-    .panel-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .panel-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 8px;
-      border-radius: 8px;
-      color: #a8b0c2;
+    /* Icons inside circle */
+    .step-check {
+      color: #86efac;
       font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-      overflow: hidden;
-      transition: background 0.1s, color 0.1s;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .step-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(139,92,246,.25);
+      border-top-color: #8b5cf6;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    .step-dot-inner {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #1a2540;
     }
 
-    .panel-item:hover { background: rgba(139,92,246,.16); color: white; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .panel-item-icon { flex-shrink: 0; font-size: 15px; }
-
-    .panel-item-text {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    /* Step text */
+    .step-content {
+      flex: 1;
+      padding-bottom: 20px;
+      padding-top: 4px;
     }
+    .step-item:last-child .step-content { padding-bottom: 4px; }
 
-    @media (max-width: 900px) {
-      #docsPanel { display: none !important; }
+    .step-label {
+      font-size: 14px;
+      font-weight: 800;
+      color: #334155;
+      transition: color 0.3s ease;
+      line-height: 1.2;
     }
+    .step-item.done   .step-label { color: #86efac; }
+    .step-item.active .step-label { color: #c4b5fd; }
+
+    .step-sublabel {
+      font-size: 12px;
+      color: #1e293b;
+      margin-top: 3px;
+      transition: color 0.3s ease;
+    }
+    .step-item.done   .step-sublabel { color: #4ade80; opacity: .75; }
+    .step-item.active .step-sublabel { color: #a78bfa; }
 
   </style>
 </head>
 <body>
-  <nav id="docsPanel">
-    <div class="panel-inner">
-      <div class="panel-topbar">
-        <button class="panel-toggle" id="panelToggle" onclick="togglePanel()" title="Toggle sidebar">
-          <span id="panelChevron">◀</span>
-        </button>
-        <span class="panel-title">Docs Library</span>
-      </div>
-      <div class="panel-section-label">Repositories</div>
-      <ul class="panel-list" id="panelList"></ul>
-    </div>
-  </nav>
-
-  <div class="main-content">
   <main class="app-shell">
     <section id="generatorScreen">
       <div class="badge">Code2Docs</div>
 
-      <h1 class="hero-title">Generate documentation from a </h1>
-      <h1 class="hero-title-repo" style="font-color: ;">repo URL</h1>
+      <h1 class="hero-title">Generate documentation from a repo URL</h1>
 
       <p class="hero-copy">
         Paste the GitHub/GitLab/Bitbucket link and create a technical README with modules,
@@ -686,7 +639,7 @@
             id="repo"
             class="repo-input"
             placeholder="https://github.com/org/repo.git"
-            value=""
+            value="https://github.com/backend-teamdev-expertos/skills-dashboard-rest.git"
           />
           <button class="generate-btn" onclick="generateDocs()">Generate docs</button>
         </div>
@@ -703,10 +656,10 @@
 
         <div class="log-panel" id="logPanel">
           <div class="log-header">
-            <span>Agent log</span>
+            <span>Generation Progress</span>
             <div class="log-dot idle" id="logDot"></div>
           </div>
-          <div class="log-body" id="logBody"></div>
+          <div class="steps-list" id="stepsList"></div>
         </div>
 
         <button id="wikiLaunch" class="wiki-launch" onclick="openWiki()">
@@ -823,44 +776,126 @@
       </div>
     </section>
   </main>
-  </div>
 
   <script>
     let currentRepoName = "";
     let currentOutputUrl = "";
     let pollingInterval = null;
 
-    function setLogActive(active) {
-      document.getElementById("logDot").className = "log-dot" + (active ? "" : " idle");
+    /* ── Step definitions ──────────────────────────────── */
+    const STEPS = [
+      {
+        id: 'init',
+        label: 'Initializing',
+        sublabel: 'Preparing documentation request',
+        keywords: []
+      },
+      {
+        id: 'repo',
+        label: 'Repository setup',
+        sublabel: 'Cloning or pulling latest changes',
+        keywords: ['Cloning repository', 'running git pull', 'Repository already cloned']
+      },
+      {
+        id: 'agent',
+        label: 'Launching AI agent',
+        sublabel: 'Starting the codebase documenter',
+        keywords: ['Spawning claude', 'Documentation status']
+      },
+      {
+        id: 'analyze',
+        label: 'Analyzing codebase',
+        sublabel: 'Reading files, detecting languages & patterns',
+        keywords: ['Command: claude']
+      },
+      {
+        id: 'generate',
+        label: 'Generating documentation',
+        sublabel: 'Writing HTML, diagrams and changelog',
+        keywords: [] // triggered by Claude output lines after step 4
+      },
+      {
+        id: 'done',
+        label: 'Documentation ready',
+        sublabel: 'Wiki generated and ready to view',
+        keywords: [] // triggered by hasIndex
+      }
+    ];
+
+    let _currentStep = -1;
+    let _allDone = false;
+
+    function _circleHTML(state) {
+      if (state === 'done')   return '<span class="step-check">✓</span>';
+      if (state === 'active') return '<div class="step-spinner"></div>';
+      return '<div class="step-dot-inner"></div>';
     }
 
-    function appendLog(text) {
-      const body = document.getElementById("logBody");
-      body.textContent += text + "\n";
-      body.scrollTop = body.scrollHeight;
+    function _renderSteps(doneUpTo) {
+      // doneUpTo: index of last DONE step (-1 = none done, STEPS.length = all done)
+      document.getElementById('stepsList').innerHTML = STEPS.map((s, i) => {
+        const state = i < doneUpTo ? 'done' : i === doneUpTo ? 'active' : 'pending';
+        return `<div class="step-item ${state}" id="step-${s.id}">
+          <div class="step-circle">${_circleHTML(state)}</div>
+          <div class="step-content">
+            <div class="step-label">${s.label}</div>
+            <div class="step-sublabel">${s.sublabel}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function _advanceStep(idx) {
+      if (_allDone || idx <= _currentStep) return;
+      _currentStep = idx;
+      _renderSteps(idx);
+    }
+
+    function _parseLog(logText) {
+      if (_allDone) return;
+      const lines = logText.split('\n').filter(l => l.trim());
+      let highest = 0;
+
+      if (lines.some(l => l.includes('Cloning repository') || l.includes('running git pull') || l.includes('Repository already cloned'))) highest = 1;
+      if (lines.some(l => l.includes('Spawning claude') || l.includes('Documentation status')))                                              highest = Math.max(highest, 2);
+
+      const cmdIdx = lines.findIndex(l => l.includes('Command: claude'));
+      if (cmdIdx !== -1) {
+        highest = Math.max(highest, 3);
+        if (lines.length - cmdIdx - 1 >= 4) highest = Math.max(highest, 4); // Claude has started producing output
+      }
+
+      _advanceStep(highest);
+    }
+
+    /* ── Public helpers ────────────────────────────────── */
+    function setLogActive(active) {
+      document.getElementById('logDot').className = 'log-dot' + (active ? '' : ' idle');
     }
 
     function clearLog() {
-      document.getElementById("logBody").textContent = "";
+      _currentStep = -1;
+      _allDone = false;
+      document.getElementById('stepsList').innerHTML = '';
     }
 
     function showLogPanel() {
-      document.getElementById("logPanel").style.display = "block";
+      document.getElementById('logPanel').style.display = 'block';
+      _advanceStep(0); // immediately show step 0 as active
     }
 
     function fetchLogs() {
       if (!currentRepoName) return;
       fetch('/api/logs/' + currentRepoName)
         .then(r => r.json())
-        .then(data => {
-          if (data.logs !== undefined) {
-            const body = document.getElementById("logBody");
-            const atBottom = body.scrollHeight - body.scrollTop <= body.clientHeight + 30;
-            body.textContent = data.logs;
-            if (atBottom) body.scrollTop = body.scrollHeight;
-          }
-        })
+        .then(data => { if (data.logs !== undefined) _parseLog(data.logs); })
         .catch(() => {});
+    }
+
+    function _markAllDone() {
+      _allDone = true;
+      _currentStep = STEPS.length;
+      _renderSteps(STEPS.length);
     }
 
     function generateDocs() {
@@ -921,8 +956,8 @@
                   status.textContent = "✅ Documentation " + data.action.toLowerCase() + "d and ready!";
                   setLogActive(false);
                   fetchLogs();
+                  _markAllDone();
                   wikiLaunch.style.display = "block";
-                  loadDocsList();
                 }
               })
               .catch(() => {});
@@ -977,45 +1012,6 @@
     function exportPDF() {
       window.print();
     }
-
-    let panelCollapsed = false;
-
-    function togglePanel() {
-      const panel = document.getElementById('docsPanel');
-      const chevron = document.getElementById('panelChevron');
-      panelCollapsed = !panelCollapsed;
-      panel.classList.toggle('collapsed', panelCollapsed);
-      chevron.textContent = panelCollapsed ? '▶' : '◀';
-    }
-
-    function loadDocsList() {
-      fetch('/api/list-docs')
-        .then(r => r.json())
-        .then(data => {
-          const panel = document.getElementById('docsPanel');
-          const list = document.getElementById('panelList');
-          if (!data.repos || data.repos.length === 0) {
-            panel.classList.remove('open');
-            return;
-          }
-          list.innerHTML = '';
-          data.repos.forEach(repo => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = repo.url;
-            a.target = '_blank';
-            a.className = 'panel-item';
-            a.title = repo.name;
-            a.innerHTML = `<span class="panel-item-icon">📄</span><span class="panel-item-text">${repo.name}</span>`;
-            li.appendChild(a);
-            list.appendChild(li);
-          });
-          panel.classList.add('open');
-        })
-        .catch(() => {});
-    }
-
-    document.addEventListener('DOMContentLoaded', loadDocsList);
   </script>
 </body>
 </html>
