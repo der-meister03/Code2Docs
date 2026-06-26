@@ -1,0 +1,12 @@
+{
+  "name": "code2docs",
+  "version": "1.0.0",
+  "description": "Generate wiki documentation from a repository URL using Claude Code",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

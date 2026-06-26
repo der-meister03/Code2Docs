@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Code2Docs</title>
+  <style>
+    :root {
+      --bg: #0f0b2e;
+      --bg-2: #070b1a;
+      --card: rgba(17, 24, 39, 0.88);
+      --panel: #050816;
+      --text: #f8fafc;
+      --muted: #9ca3af;
+      --border: #243044;
+      --border-strong: #40506c;
+      --purple: #8b5cf6;
+      --purple-2: #4f46e5;
+      --green: #22c55e;
+      --sidebar: #0b1020;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, var(--bg), var(--bg-2));
+      color: var(--text);
+    }
+
+    .app-shell {
+      width: min(1200px, 94vw);
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(196,181,253,.35);
+      color: #c4b5fd;
+      font-weight: 800;
+      font-size: 18px;
+      margin-bottom: 36px;
+      background: rgba(139,92,246,.10);
+    }
+
+    .hero-title {
+      font-size: clamp(58px, 8vw, 104px);
+      line-height: 0.98;
+      margin: 0 0 28px;
+      font-weight: 900;
+      letter-spacing: -4px;
+    }
+
+    .hero-copy {
+      color: #a8b0c2;
+      font-size: clamp(22px, 2.3vw, 32px);
+      line-height: 1.2;
+      max-width: 1140px;
+      margin: 0 0 52px;
+      font-weight: 650;
+    }
+
+    .generator-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 38px 36px;
+      box-shadow: 0 20px 70px rgba(0,0,0,.25);
+    }
+
+    .section-label {
+      display: block;
+      font-size: 30px;
+      font-weight: 900;
+      margin-bottom: 26px;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .repo-input {
+      width: 100%;
+      height: 68px;
+      padding: 0 24px;
+      border-radius: 18px;
+      border: 1.5px solid var(--border-strong);
+      background: #030615;
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .repo-input::placeholder { color: #8b8e98; }
+
+    .generate-btn {
+      height: 68px;
+      border: 0;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--purple), var(--purple-2));
+      color: white;
+      font-size: 20px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    .generate-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+    .checkbox-wrap { margin-top: 28px; }
+
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      color: #a8b0c2;
+      font-size: 22px;
+      font-weight: 800;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-label input { display: none; }
+
+    .custom-check {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      border: 2.5px solid #64748b;
+      display: inline-block;
+      position: relative;
+      background: transparent;
+      flex: 0 0 auto;
+    }
+
+    .checkbox-label:hover .custom-check { border-color: #8b5cf6; }
+
+    .checkbox-label input:checked + .custom-check {
+      background: #8b5cf6;
+      border-color: #8b5cf6;
+    }
+
+    .custom-check::after {
+      content: "";
+      position: absolute;
+      width: 9px;
+      height: 16px;
+      border: solid white;
+      border-width: 0 3px 3px 0;
+      top: 3px;
+      left: 10px;
+      transform: rotate(45deg);
+      opacity: 0;
+    }
+
+    .checkbox-label input:checked + .custom-check::after { opacity: 1; }
+
+    .status {
+      margin-top: 26px;
+      padding: 22px 20px;
+      min-height: 66px;
+      border-radius: 18px;
+      border: 1px solid #202a3e;
+      background: #030615;
+      color: #a8b0c2;
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+    }
+
+    .wiki-launch {
+      display: none;
+      width: 100%;
+      margin-top: 24px;
+      min-height: 68px;
+      border: 0;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      font-size: 22px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    .wiki-launch:hover { transform: translateY(-1px); filter: brightness(1.06); }
+
+    .output-preview { display: none; }
+
+    /* Wiki page */
+    .wiki-page {
+      display: none;
+      min-height: calc(100vh - 56px);
+      background: rgba(5,8,22,.94);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 24px 90px rgba(0,0,0,.35);
+    }
+
+    .wiki-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 760px;
+    }
+
+    .sidebar {
+      background: #080d1d;
+      border-right: 1px solid var(--border);
+      padding: 28px 20px;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 34px;
+    }
+
+    .brand-dot {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--purple), var(--purple-2));
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .sidebar-title {
+      color: #7f8aa3;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      margin: 28px 10px 12px;
+    }
+
+    .nav-item {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #a8b0c2;
+      font-size: 16px;
+      font-weight: 800;
+      text-align: left;
+      padding: 13px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      color: white;
+      background: rgba(139,92,246,.16);
+    }
+
+    .wiki-main {
+      padding: 34px 42px 44px;
+      background: #050816;
+    }
+
+    .wiki-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 26px;
+    }
+
+    .wiki-eyebrow {
+      color: #8b5cf6;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+    }
+
+    .wiki-title {
+      font-size: clamp(38px, 4vw, 58px);
+      line-height: 1;
+      margin: 0 0 12px;
+      font-weight: 950;
+      letter-spacing: -2px;
+    }
+
+    .wiki-subtitle {
+      color: #a8b0c2;
+      font-size: 18px;
+      margin: 0;
+      word-break: break-word;
+    }
+
+    .back-btn {
+      border: 1px solid var(--border-strong);
+      background: #030615;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--border);
+      background: #080d1d;
+      color: #a8b0c2;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      color: white;
+      background: linear-gradient(135deg, rgba(139,92,246,.9), rgba(79,70,229,.9));
+      border-color: transparent;
+    }
+
+    .wiki-content {
+      background: #080d1d;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 30px;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .tab-panel h2 {
+      font-size: 30px;
+      margin: 0 0 18px;
+    }
+
+    .tab-panel h3 {
+      font-size: 21px;
+      margin: 28px 0 12px;
+      color: #e5e7eb;
+    }
+
+    .tab-panel p,
+    .tab-panel li {
+      color: #b7c0d4;
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .metric-card {
+      background: #030615;
+      border: 1px solid #202a3e;
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .metric-card span {
+      display: block;
+      color: #7f8aa3;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 10px;
+    }
+
+    .metric-card strong {
+      display: block;
+      color: white;
+      font-size: 28px;
+    }
+
+    .code-block {
+      background: #030615;
+      border: 1px solid #202a3e;
+      border-radius: 16px;
+      padding: 20px;
+      color: #e5e7eb;
+      overflow: auto;
+      font-family: Consolas, Monaco, monospace;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 900px) {
+      .input-row { grid-template-columns: 1fr; }
+      .hero-title { letter-spacing: -2px; }
+      .wiki-layout { grid-template-columns: 1fr; }
+      .sidebar { border-right: 0; border-bottom: 1px solid var(--border); }
+      .grid-cards { grid-template-columns: 1fr; }
+      .wiki-topbar { flex-direction: column; }
+    }
+
+    @media print {
+      body {
+        background: white;
+        color: black;
+      }
+
+      .sidebar,
+      .back-btn,
+      .export-btn,
+      .tabs {
+        display: none !important;
+      }
+
+      .wiki-main {
+        padding: 0;
+      }
+
+      .wiki-content {
+        border: none;
+      }
+    }
+
+    .export-btn {
+      border: none;
+      background: linear-gradient(135deg, #06b6d4, #0891b2);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    .wiki-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .log-panel {
+      display: none;
+      margin-top: 20px;
+      border-radius: 18px;
+      border: 1px solid #243044;
+      background: #020510;
+      overflow: hidden;
+    }
+
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: #0b1020;
+      border-bottom: 1px solid #243044;
+      font-size: 14px;
+      font-weight: 900;
+      color: #7f8aa3;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+    }
+
+    .log-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    .log-dot.idle { background: #64748b; animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .log-body {
+      padding: 16px 20px;
+      height: 220px;
+      overflow-y: auto;
+      font-family: Consolas, Monaco, 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #a8c4a2;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .log-body::-webkit-scrollbar { width: 6px; }
+    .log-body::-webkit-scrollbar-track { background: transparent; }
+    .log-body::-webkit-scrollbar-thumb { background: #243044; border-radius: 3px; }
+
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section id="generatorScreen">
+      <div class="badge">Code2Docs</div>
+
+      <h1 class="hero-title">Generate documentation from a repo URL</h1>
+
+      <p class="hero-copy">
+        Paste the GitHub/GitLab/Bitbucket link and create a technical README with modules,
+        functions, dependencies and Mermaid diagram.
+      </p>
+
+      <div class="generator-card">
+        <label class="section-label" for="repo">Repository URL</label>
+
+        <div class="input-row">
+          <input
+            id="repo"
+            class="repo-input"
+            placeholder="https://github.com/org/repo.git"
+            value="https://github.com/backend-teamdev-expertos/skills-dashboard-rest.git"
+          />
+          <button class="generate-btn" onclick="generateDocs()">Generate docs</button>
+        </div>
+
+        <div class="checkbox-wrap">
+          <label class="checkbox-label">
+            <input id="ollama" type="checkbox" />
+            <span class="custom-check"></span>
+            Improve summary with local Ollama if available
+          </label>
+        </div>
+
+        <div class="status" id="status">Ready to generate documentation.</div>
+
+        <div class="log-panel" id="logPanel">
+          <div class="log-header">
+            <span>Agent log</span>
+            <div class="log-dot idle" id="logDot"></div>
+          </div>
+          <div class="log-body" id="logBody"></div>
+        </div>
+
+        <button id="wikiLaunch" class="wiki-launch" onclick="openWiki()">
+          View generated wiki →
+        </button>
+      </div>
+    </section>
+
+    <section id="wikiPage" class="wiki-page">
+      <div class="wiki-layout">
+        <aside class="sidebar">
+          <div class="sidebar-brand">
+            <div class="brand-dot">📘</div>
+            <span>Code2Docs Wiki</span>
+          </div>
+
+          <div class="sidebar-title">Workspace</div>
+          <button class="nav-item active" onclick="activateTab('overview')">🏠 Overview</button>
+          <button class="nav-item" onclick="activateTab('modules')">🧩 Modules</button>
+          <button class="nav-item" onclick="activateTab('api')">⚙️ API Layer</button>
+          <button class="nav-item" onclick="activateTab('diagram')">🗺️ Diagrams</button>
+          <button class="nav-item" onclick="activateTab('next')">🚀 Next steps</button>
+
+          <div class="sidebar-title">Project</div>
+          <button class="nav-item" onclick="activateTab('raw')">📄 Markdown source</button>
+        </aside>
+
+        <div class="wiki-main">
+          <div class="wiki-topbar">
+            <div>
+              <div class="wiki-eyebrow">Generated Wiki</div>
+              <h1 class="wiki-title">Repository Documentation</h1>
+              <p id="wikiRepo" class="wiki-subtitle"></p>
+            </div>
+            <div class="actions">
+              <button class="export-btn" onclick="exportPDF()">Export PDF</button>
+              <button class="back-btn" onclick="goBack()">← Back</button>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="overview" onclick="activateTab('overview')">Overview</button>
+            <button class="tab-btn" data-tab="modules" onclick="activateTab('modules')">Modules</button>
+            <button class="tab-btn" data-tab="api" onclick="activateTab('api')">API</button>
+            <button class="tab-btn" data-tab="diagram" onclick="activateTab('diagram')">Diagram</button>
+            <button class="tab-btn" data-tab="next" onclick="activateTab('next')">Next steps</button>
+            <button class="tab-btn" data-tab="raw" onclick="activateTab('raw')">Markdown</button>
+          </div>
+
+          <article class="wiki-content">
+            <section id="overview" class="tab-panel active">
+              <h2>Project overview</h2>
+              <p>
+                This wiki summarizes the repository structure and provides a clean onboarding view for developers,
+                PMs and QA. The generated content is organized into modules, API responsibilities, dependencies and diagrams.
+              </p>
+
+              <div class="grid-cards">
+                <div class="metric-card"><span>Modules</span><strong>3</strong></div>
+                <div class="metric-card"><span>Docs status</span><strong>Generated</strong></div>
+                <div class="metric-card"><span>Diagram</span><strong>Mermaid</strong></div>
+              </div>
+
+              <h3>TL;DR</h3>
+              <p>
+                The repository documentation was generated from the provided repo URL and is ready to be reviewed as a wiki-style knowledge base.
+              </p>
+            </section>
+
+            <section id="modules" class="tab-panel">
+              <h2>Modules</h2>
+              <h3>Frontend Layer</h3>
+              <p>Responsible for user interaction, screens and client-side state.</p>
+              <h3>API Layer</h3>
+              <p>Responsible for HTTP communication and integration with backend endpoints.</p>
+              <h3>Backend Services</h3>
+              <p>Responsible for business logic, data processing and service orchestration.</p>
+            </section>
+
+            <section id="api" class="tab-panel">
+              <h2>API Layer</h2>
+              <p>The API layer centralizes service calls and keeps repository communication isolated from UI logic.</p>
+              <ul>
+                <li>Handles HTTP requests.</li>
+                <li>Connects external or internal services.</li>
+                <li>Improves maintainability by separating integration code.</li>
+              </ul>
+            </section>
+
+            <section id="diagram" class="tab-panel">
+              <h2>Mermaid diagram</h2>
+              <pre class="code-block">graph TD
+  A[Frontend] --> B[API Layer]
+  B --> C[Backend Services]
+  C --> D[(Data Storage)]</pre>
+            </section>
+
+            <section id="next" class="tab-panel">
+              <h2>Recommended next steps</h2>
+              <ul>
+                <li>Add AST parsing with tree-sitter for accurate function and class extraction.</li>
+                <li>Add PR diff mode to regenerate only modified documentation.</li>
+                <li>Add documentation coverage score.</li>
+                <li>Publish this generated wiki with MkDocs or Docusaurus.</li>
+              </ul>
+            </section>
+
+            <section id="raw" class="tab-panel">
+              <h2>Markdown source</h2>
+              <pre id="markdownSource" class="code-block"></pre>
+            </section>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let currentRepoName = "";
+    let currentOutputUrl = "";
+    let pollingInterval = null;
+
+    function setLogActive(active) {
+      document.getElementById("logDot").className = "log-dot" + (active ? "" : " idle");
+    }
+
+    function appendLog(text) {
+      const body = document.getElementById("logBody");
+      body.textContent += text + "\n";
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById("logBody").textContent = "";
+    }
+
+    function showLogPanel() {
+      document.getElementById("logPanel").style.display = "block";
+    }
+
+    function fetchLogs() {
+      if (!currentRepoName) return;
+      fetch('/api/logs/' + currentRepoName)
+        .then(r => r.json())
+        .then(data => {
+          if (data.logs !== undefined) {
+            const body = document.getElementById("logBody");
+            const atBottom = body.scrollHeight - body.scrollTop <= body.clientHeight + 30;
+            body.textContent = data.logs;
+            if (atBottom) body.scrollTop = body.scrollHeight;
+          }
+        })
+        .catch(() => {});
+    }
+
+    function generateDocs() {
+      const repo = document.getElementById("repo").value.trim();
+      const status = document.getElementById("status");
+      const wikiLaunch = document.getElementById("wikiLaunch");
+
+      if (!repo) {
+        status.textContent = "❌ Please enter a repository URL";
+        wikiLaunch.style.display = "none";
+        return;
+      }
+
+      status.textContent = "⏳ Cloning / updating repository...";
+      wikiLaunch.style.display = "none";
+      clearLog();
+      showLogPanel();
+      setLogActive(true);
+
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+
+      fetch('/api/generate-docs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repoUrl: repo })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (!data.success) {
+            status.textContent = "❌ " + (data.error || "Unknown error");
+            setLogActive(false);
+            fetchLogs();
+            return;
+          }
+
+          currentRepoName = data.repoName;
+          currentOutputUrl = data.outputUrl;
+
+          const dots = ["⚡ Agent running.", "⚡ Agent running..", "⚡ Agent running..."];
+          let dotIdx = 0;
+          status.textContent = dots[0] + " (" + data.action + ")";
+
+          pollingInterval = setInterval(() => {
+            dotIdx = (dotIdx + 1) % dots.length;
+            status.textContent = dots[dotIdx] + " (" + data.action + ")";
+
+            fetchLogs();
+
+            fetch('/api/doc-status/' + currentRepoName)
+              .then(r => r.json())
+              .then(s => {
+                if (s.hasIndex) {
+                  clearInterval(pollingInterval);
+                  pollingInterval = null;
+                  status.textContent = "✅ Documentation " + data.action.toLowerCase() + "d and ready!";
+                  setLogActive(false);
+                  fetchLogs();
+                  wikiLaunch.style.display = "block";
+                }
+              })
+              .catch(() => {});
+          }, 3000);
+        })
+        .catch(err => {
+          status.textContent = "❌ Error: " + err.message;
+          setLogActive(false);
+        });
+    }
+
+    function openWiki() {
+      if (currentOutputUrl) {
+        window.open(currentOutputUrl, '_blank');
+      }
+    }
+
+    function goBack() {
+      document.getElementById("generatorScreen").style.display = "block";
+      document.getElementById("wikiPage").style.display = "none";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function activateTab(tabId) {
+      document.querySelectorAll(".tab-panel").forEach(panel => {
+        panel.classList.toggle("active", panel.id === tabId);
+      });
+
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tabId);
+      });
+
+      document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.remove("active");
+      });
+
+      const sidebarMap = {
+        overview: 0,
+        modules: 1,
+        api: 2,
+        diagram: 3,
+        next: 4,
+        raw: 5
+      };
+
+      const navItems = document.querySelectorAll(".nav-item");
+      if (navItems[sidebarMap[tabId]]) {
+        navItems[sidebarMap[tabId]].classList.add("active");
+      }
+    }
+
+    function exportPDF() {
+      window.print();
+    }
+  </script>
+</body>
+</html>
