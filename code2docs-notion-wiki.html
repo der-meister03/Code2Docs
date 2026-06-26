@@ -28,12 +28,14 @@
       font-family: Inter, Arial, Helvetica, sans-serif;
       background: linear-gradient(135deg, var(--bg), var(--bg-2));
       color: var(--text);
+      display: flex;
+      align-items: flex-start;
     }
 
     .app-shell {
-      width: min(1200px, 94vw);
+      width: min(1200px, 96%);
       margin: 0 auto;
-      padding: 28px 0 56px;
+      padding: 28px 24px 56px;
     }
 
     .badge {
@@ -56,6 +58,18 @@
       margin: 0 0 22px;
       font-weight: 800;
       letter-spacing: -1px;
+    }
+
+    .hero-title-repo {
+      font-size: clamp(38px, 5vw, 68px);
+      line-height: 1.04;
+      margin: 0 0 22px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--purple), var(--purple-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: var(--purple);
     }
 
     .hero-copy {
@@ -424,6 +438,156 @@
       .wiki-topbar { flex-direction: column; }
     }
 
+    /* ── Repo Sidebar (Jira-style) ─────────────────────── */
+    .repo-sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: #0b1020;
+      border-right: 1px solid var(--border);
+      display: none;
+      flex-direction: column;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      align-self: flex-start;
+    }
+
+    .repo-sidebar.visible { display: flex; }
+    .repo-sidebar.collapsed { width: 44px; }
+
+    .repo-sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 10px 18px 14px;
+      border-bottom: 1px solid var(--border);
+      min-height: 60px;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .repo-sidebar.collapsed .repo-sidebar-header {
+      justify-content: center;
+      padding: 18px 8px;
+    }
+
+    .repo-sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .repo-sidebar.collapsed .repo-sidebar-brand { display: none; }
+
+    .repo-sidebar-brand-icon { font-size: 16px; flex-shrink: 0; }
+
+    .repo-sidebar-label {
+      font-size: 12px;
+      font-weight: 900;
+      color: #7f8aa3;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-toggle-btn {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #7f8aa3;
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+      line-height: 1;
+      transition: background .15s, color .15s, border-color .15s;
+      padding: 0;
+    }
+
+    .sidebar-toggle-btn:hover {
+      background: rgba(139,92,246,.2);
+      color: #c4b5fd;
+      border-color: var(--purple);
+    }
+
+    .repo-sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 10px 0 20px;
+    }
+
+    .repo-sidebar-content::-webkit-scrollbar { width: 3px; }
+    .repo-sidebar-content::-webkit-scrollbar-track { background: transparent; }
+    .repo-sidebar-content::-webkit-scrollbar-thumb { background: #2d3d57; border-radius: 4px; }
+
+    .repo-section-label {
+      font-size: 10px;
+      font-weight: 900;
+      color: #3a4d65;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 8px 14px 6px;
+      white-space: nowrap;
+    }
+
+    .repo-sidebar.collapsed .repo-section-label { display: none; }
+
+    .repo-link-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      color: #9dafc6;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      margin: 2px 6px;
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .repo-link-item:hover {
+      background: rgba(139,92,246,.16);
+      color: #e2e8f0;
+    }
+
+    .repo-link-icon { font-size: 13px; flex-shrink: 0; }
+
+    .repo-link-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .repo-sidebar.collapsed .repo-link-item {
+      justify-content: center;
+      padding: 10px 0;
+      margin: 2px 4px;
+    }
+
+    .repo-sidebar.collapsed .repo-link-text { display: none; }
+
+    .main-content { flex: 1; min-width: 0; }
+
+    @media (max-width: 768px) {
+      .repo-sidebar { display: none !important; }
+      .main-content { width: 100%; }
+    }
+
     @media print {
       body {
         background: white;
@@ -620,11 +784,31 @@
   </style>
 </head>
 <body>
+
+  <!-- ── Repo Sidebar ──────────────────────────────────── -->
+  <nav class="repo-sidebar" id="repoSidebar">
+    <div class="repo-sidebar-header">
+      <div class="repo-sidebar-brand">
+        <span class="repo-sidebar-brand-icon">📁</span>
+        <span class="repo-sidebar-label">Repositories</span>
+      </div>
+      <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Toggle sidebar">
+        <span id="sidebarToggleIcon">‹</span>
+      </button>
+    </div>
+    <div class="repo-sidebar-content">
+      <div class="repo-section-label">Generated Docs</div>
+      <div id="repoList"></div>
+    </div>
+  </nav>
+
+  <div class="main-content">
   <main class="app-shell">
     <section id="generatorScreen">
       <div class="badge">Code2Docs</div>
 
-      <h1 class="hero-title">Generate documentation from a repo URL</h1>
+      <h1 class="hero-title">Generate documentation from a <span class="hero-title-repo">repo URL</span></h1>
+      
 
       <p class="hero-copy">
         Paste the GitHub/GitLab/Bitbucket link and create a technical README with modules,
@@ -644,13 +828,13 @@
           <button class="generate-btn" onclick="generateDocs()">Generate docs</button>
         </div>
 
-        <div class="checkbox-wrap">
+       <!--  <div class="checkbox-wrap">
           <label class="checkbox-label">
             <input id="ollama" type="checkbox" />
             <span class="custom-check"></span>
             Improve summary with local Ollama if available
           </label>
-        </div>
+        </div> -->
 
         <div class="status" id="status">Ready to generate documentation.</div>
 
@@ -776,6 +960,7 @@
       </div>
     </section>
   </main>
+  </div><!-- /.main-content -->
 
   <script>
     let currentRepoName = "";
@@ -958,6 +1143,7 @@
                   fetchLogs();
                   _markAllDone();
                   wikiLaunch.style.display = "block";
+                  loadRepoDocs();
                 }
               })
               .catch(() => {});
@@ -1012,6 +1198,51 @@
     function exportPDF() {
       window.print();
     }
+
+    /* ── Repo Sidebar ──────────────────────────────────── */
+    async function loadRepoDocs() {
+      try {
+        const res = await fetch('/api/list-docs');
+        if (!res.ok) return;
+        const data = await res.json();
+        const sidebar = document.getElementById('repoSidebar');
+        const repoList = document.getElementById('repoList');
+
+        if (!data.repos || data.repos.length === 0) {
+          sidebar.classList.remove('visible');
+          return;
+        }
+
+        sidebar.classList.add('visible');
+
+        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (isCollapsed) {
+          sidebar.classList.add('collapsed');
+          document.getElementById('sidebarToggleIcon').textContent = '›';
+        } else {
+          sidebar.classList.remove('collapsed');
+          document.getElementById('sidebarToggleIcon').textContent = '‹';
+        }
+
+        repoList.innerHTML = data.repos.map(repo => `
+          <a class="repo-link-item" href="${repo.url}" target="_blank" title="${repo.name}">
+            <span class="repo-link-icon">📄</span>
+            <span class="repo-link-text">${repo.name}</span>
+          </a>
+        `).join('');
+
+      } catch (_) {}
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('repoSidebar');
+      const icon = document.getElementById('sidebarToggleIcon');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      icon.textContent = isCollapsed ? '›' : '‹';
+      localStorage.setItem('sidebarCollapsed', isCollapsed);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadRepoDocs);
   </script>
 </body>
 </html>
